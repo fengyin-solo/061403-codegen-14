@@ -31,6 +31,20 @@
       <span class="period-text">{{ isDay ? '白天' : '夜晚' }}</span>
       <span class="day-count">第 {{ dayCount }} 天</span>
     </div>
+    <div v-if="weatherKnowledge > 0" class="weather-prediction">
+      <span class="weather-level">🌤️ Lv.{{ weatherKnowledge }}</span>
+      <div v-if="nextDayBlizzardChance !== null" class="prediction">
+        <span v-if="nextDayBlizzardChance > 0.5" class="blizzard-pred">
+          🌨️ 暴风雪概率高
+        </span>
+        <span v-else-if="nextDayBlizzardChance <= 0.1" class="calm-pred">
+          ☀️ 天气平稳
+        </span>
+        <span v-else class="medium-pred">
+          ⚠️ 可能有暴风雪
+        </span>
+      </div>
+    </div>
     <div v-if="isBlizzard" class="blizzard-warning">
       <svg class="snowflake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="12" y1="2" x2="12" y2="22" />
@@ -56,6 +70,14 @@ defineProps({
   isBlizzard: {
     type: Boolean,
     default: false
+  },
+  weatherKnowledge: {
+    type: Number,
+    default: 0
+  },
+  nextDayBlizzardChance: {
+    type: Number,
+    default: null
   }
 })
 </script>
@@ -129,6 +151,42 @@ defineProps({
 .day-count {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.weather-prediction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 10px;
+  background: rgba(52, 152, 219, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  gap: 3px;
+}
+
+.weather-level {
+  font-size: 12px;
+  color: #aed6f1;
+  font-weight: bold;
+}
+
+.prediction {
+  font-size: 11px;
+}
+
+.blizzard-pred {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.calm-pred {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.medium-pred {
+  color: #f39c12;
+  font-weight: bold;
 }
 
 .blizzard-warning {

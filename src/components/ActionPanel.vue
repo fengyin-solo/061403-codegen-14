@@ -1,7 +1,7 @@
 <template>
   <div class="action-panel">
     <h3 class="panel-title">行动</h3>
-    <div v-if="isNight" class="night-warning">
+    <div v-if="isNight && !canNightPatrol" class="night-warning">
       <span>🌙 夜晚无法外出活动，请保持温暖！</span>
     </div>
     <div class="actions-grid">
@@ -55,20 +55,47 @@
         <span class="btn-hint">+5~15 体温</span>
       </button>
     </div>
+
+    <div v-if="unlockedActionDetails.length > 0" class="hidden-section">
+      <h4 class="section-title">✨ 隐藏行动</h4>
+      <div class="actions-grid">
+        <button 
+          v-for="action in unlockedActionDetails" 
+          :key="action.id"
+          class="action-btn hidden-btn"
+          :class="{ 
+            disabled: (action.id !== 'night_patrol' && isNight) || (action.id === 'night_patrol' && isDay) || gameOver 
+          }"
+          @click="$emit(action.id)"
+        >
+          <span class="btn-icon">{{ action.icon }}</span>
+          <span class="btn-text">{{ action.name }}</span>
+          <span class="btn-cost">-{{ action.tempCost }} 体温</span>
+          <span class="btn-hint">{{ action.description }}</span>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   isNight: { type: Boolean, default: false },
   gameOver: { type: Boolean, default: false },
   canFire: { type: Boolean, default: false },
   canCraft: { type: Boolean, default: false },
   huntRate: { type: Number, default: 0.3 },
-  food: { type: Number, default: 0 }
+  food: { type: Number, default: 0 },
+  unlockedActionDetails: { type: Array, default: () => [] }
 })
 
-defineEmits(['chop', 'hunt', 'craft', 'fire', 'eat'])
+defineEmits(['chop', 'hunt', 'craft', 'fire', 'eat', 'explore', 'ice_fishing', 'gather_herbs', 'search_supply', 'night_patrol'])
+
+const canNightPatrol = computed(() => {
+  return props.unlockedActionDetails.some(a => a.id === 'night_patrol')
+})
 </script>
 
 <style scoped>
@@ -103,6 +130,20 @@ defineEmits(['chop', 'hunt', 'craft', 'fire', 'eat'])
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+}
+
+.hidden-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.section-title {
+  color: #d2b4de;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .action-btn {
@@ -154,6 +195,15 @@ defineEmits(['chop', 'hunt', 'craft', 'fire', 'eat'])
   box-shadow: 0 5px 20px rgba(50, 200, 100, 0.4);
 }
 
+.hidden-btn:not(.disabled) {
+  border-color: rgba(155, 89, 182, 0.6);
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(142, 68, 173, 0.1));
+}
+
+.hidden-btn:hover:not(.disabled) {
+  box-shadow: 0 5px 20px rgba(155, 89, 182, 0.4);
+}
+
 .btn-icon {
   font-size: 28px;
 }
@@ -171,5 +221,7 @@ defineEmits(['chop', 'hunt', 'craft', 'fire', 'eat'])
 .btn-hint {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  line-height: 1.3;
 }
 </style>

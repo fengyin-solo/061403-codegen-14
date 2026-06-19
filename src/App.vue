@@ -23,6 +23,8 @@
           :isDay="isDay" 
           :dayCount="dayCount"
           :isBlizzard="isBlizzard"
+          :weatherKnowledge="weatherKnowledge"
+          :nextDayBlizzardChance="nextDayBlizzardChance"
         />
       </div>
 
@@ -39,6 +41,23 @@
             :hide="hide"
             :tools="tools"
           />
+          <ResearchNotes
+            :observations="observations"
+            :unlockedRecipes="unlockedRecipes"
+            :unlockedRecipeDetails="unlockedRecipeDetails"
+            :unlockedActions="unlockedActions"
+            :unlockedActionDetails="unlockedActionDetails"
+            :weatherKnowledge="weatherKnowledge"
+            :wood="wood"
+            :hide="hide"
+            :tools="tools"
+            :food="food"
+            :hasWarmCloak="hasWarmCloak"
+            :hasSnowShelter="hasSnowShelter"
+            :hasHuntingTrap="hasHuntingTrap"
+            :hasSharpTools="hasSharpTools"
+            @craft="handleCraftRecipe"
+          />
         </div>
 
         <div class="center-panel">
@@ -54,6 +73,12 @@
               ></div>
             </div>
             <div class="heat-value">{{ Math.round(heat) }}/100</div>
+            <div v-if="hasWarmCloak || hasSnowShelter" class="buffs">
+              <span v-if="hasWarmCloak" class="buff-tag">🧥 保暖披风</span>
+              <span v-if="hasSnowShelter" class="buff-tag">🏠 雪屋</span>
+              <span v-if="hasHuntingTrap" class="buff-tag">🪤 陷阱</span>
+              <span v-if="hasSharpTools" class="buff-tag">⚔️ 锋利工具</span>
+            </div>
           </div>
         </div>
 
@@ -65,11 +90,17 @@
             :canCraft="wood >= 2 && hide >= 1"
             :huntRate="huntSuccessRate"
             :food="food"
+            :unlockedActionDetails="unlockedActionDetails"
             @chop="handleChop"
             @hunt="handleHunt"
             @craft="handleCraft"
             @fire="handleFire"
             @eat="handleEat"
+            @explore="handleExplore"
+            @ice_fishing="handleIceFishing"
+            @gather_herbs="handleGatherHerbs"
+            @search_supply="handleSearchSupply"
+            @night_patrol="handleNightPatrol"
           />
         </div>
       </div>
@@ -104,6 +135,7 @@ import ActionPanel from './components/ActionPanel.vue'
 import LogPanel from './components/LogPanel.vue'
 import SaveManager from './components/SaveManager.vue'
 import GameOver from './components/GameOver.vue'
+import ResearchNotes from './components/ResearchNotes.vue'
 
 const {
   temperature,
@@ -122,11 +154,28 @@ const {
   isDanger,
   canMakeFire,
   huntSuccessRate,
+  observations,
+  unlockedRecipes,
+  unlockedRecipeDetails,
+  weatherKnowledge,
+  unlockedActions,
+  unlockedActionDetails,
+  hasWarmCloak,
+  hasSnowShelter,
+  hasHuntingTrap,
+  hasSharpTools,
+  nextDayBlizzardChance,
   chopWood,
   hunt,
   makeTools,
   makeFire,
   eatFood,
+  craftRecipe,
+  doExplore,
+  doIceFishing,
+  doGatherHerbs,
+  doSearchSupply,
+  doNightPatrol,
   saveGame,
   loadGame,
   getSaveSlots,
@@ -204,6 +253,37 @@ function handleEat() {
   } else {
     playWarning()
   }
+}
+
+function handleCraftRecipe(recipeId) {
+  playCraft()
+  craftRecipe(recipeId)
+  playSuccess()
+}
+
+function handleExplore() {
+  playHunt()
+  doExplore()
+}
+
+function handleIceFishing() {
+  playHunt()
+  doIceFishing()
+}
+
+function handleGatherHerbs() {
+  playChop()
+  doGatherHerbs()
+}
+
+function handleSearchSupply() {
+  playCraft()
+  doSearchSupply()
+}
+
+function handleNightPatrol() {
+  playChop()
+  doNightPatrol()
 }
 
 function handleSave(slotName) {
@@ -337,7 +417,7 @@ watch(isDanger, (newVal) => {
 
 .middle-section {
   display: grid;
-  grid-template-columns: 280px 1fr 320px;
+  grid-template-columns: 300px 1fr 320px;
   gap: 20px;
   align-items: start;
 }
@@ -396,6 +476,23 @@ watch(isDanger, (newVal) => {
   font-weight: bold;
   margin-top: 8px;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.buffs {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.buff-tag {
+  padding: 4px 10px;
+  background: rgba(46, 204, 113, 0.3);
+  border: 1px solid rgba(46, 204, 113, 0.5);
+  border-radius: 15px;
+  color: white;
+  font-size: 12px;
 }
 
 .right-panel {
